@@ -1,26 +1,31 @@
 from flask import Flask, request, jsonify
 import joblib
 import numpy as np
+import pandas as pd
 
 model = joblib.load('../models/best_model.joblib')
 scaler = joblib.load('../models/scaler.pkl')
-
+feature_names = [
+    'no_of_dependents', 'education', 'self_employed', 'income_annum', 
+    'loan_amount', 'loan_term', 'cibil_score', 'residential_assets_value', 
+    'commercial_assets_value', 'luxury_assets_value', 'bank_asset_value', 'Total assets'
+]
 app = Flask(__name__)
 
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.get_json()
 
-    features = np.array(data['features']).reshape(1, -1)
+    data = pd.DataFrame([data['features']], columns=feature_names)
+    print("Input features DataFrame:\n", data.to_string(index=False))
 
-    scalable_features = features[:, [3, 4, 7, 8, 9, 10, 11]]
-    non_scalable_features = np.delete(features, [3, 4, 7, 8, 9, 10, 11], axis=1)  # Остальные признаки
-
-    scaled_features = scaler.transform(scalable_features)
-
-    final_features = np.hstack((scaled_features, non_scalable_features))
-
-    prediction = model.predict(final_features)
+    data[['income_annum', 'loan_amount', 'residential_assets_value', 
+        'commercial_assets_value', 'luxury_assets_value', 
+        'bank_asset_value', 'Total assets']] = scaler.transform(data[['income_annum', 'loan_amount', 'residential_assets_value', 
+        'commercial_assets_value', 'luxury_assets_value', 
+        'bank_asset_value', 'Total assets']])
+    print("Final features:", data.to_string(index=False))
+    prediction = model.predict(data)
     result = int(prediction[0])
 
     return jsonify({'prediction': result})
