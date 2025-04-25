@@ -48,7 +48,8 @@ def predict():
         'bank_asset_value', 'Total assets']] = scaler.transform(data[['income_annum', 'loan_amount', 'residential_assets_value', 
         'commercial_assets_value', 'luxury_assets_value', 
         'bank_asset_value', 'Total assets']])
-
+    
+    print("Transformed features:", data.to_string(index=False))
     print("Final features:", data.to_string(index=False))
     prediction = model.predict(data)
     result = int(prediction[0])
